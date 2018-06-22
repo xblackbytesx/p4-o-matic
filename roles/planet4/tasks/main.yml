@@ -1,6 +1,53 @@
 ---
 - name: Clone Planet4 from Github
-  git: repo=https://github.com/greenpeace/planet4-base.git dest=/var/www/planet-4-base
+  git: repo=https://github.com/greenpeace/planet4-base.git dest={{p4_install_path}}
 
-- name: Go into the planet-4-base directory
-  chdir: /var/www/planet-4-base
+- name: Add group "planet4"
+  group: name=planet4
+
+- name: Add user "planet4"
+  user: name=planet4 group=planet4 home={{p4_install_path}}/
+
+- name: Create planet4 database
+  mysql_db: name={{ nc_db_name }} state=present
+
+- name: Create planet4 database user
+  mysql_user: name={{ nc_db_user }} password={{ nc_db_password }} priv={{ nc_db_name }}.*:ALL host='localhost' state=present
+
+- name: Copy planet4 config file
+  template: src=config.php dest={{p4_install_path}}/wp-cli.yml
+
+- composer:
+    command: config
+    arguments: extra.merge-plugin.require "app/{{ composer_nro }}/{{composer_environment}}/composer.json"
+    working_dir: '{{p4_install_path}}'
+
+- composer:
+    command: install
+    working_dir: '{{p4_install_path}}'
+
+- name: Change ownership of planet4 installation
+  file: path={{p4_install_path}}/ owner=www-data group=www-data state=directory recurse=yes setype=httpd_sys_content_t
+
+- name: Copy planet4 server block (HTTP)
+  template: src=nginx.conf dest=/etc/nginx/sites-available/{{ p4_domain }}.conf
+
+- name: Copy planet4 server block (HTTPS)
+  template: src=nginx-ssl.conf dest=/etc/nginx/sites-available/{{ p4_domain }}-ssl.conf
+
+- name: setup nginx symlinks
+  file: path=/etc/nginx/sites-enabled/{{ p4_domain }}.conf
+        src=/etc/nginx/sites-available/{{ p4_domain }}.conf
+        state=link
+        force=yes
+  notify: restart nginx
+
+- name: setup nginx https symlinks
+  file: path=/etc/nginx/sites-enabled/{{ p4_domain }}-ssl.conf
+        src=/etc/nginx/sites-available/{{ p4_domain }}-ssl.conf
+        state=link
+        force=yes
+  notify: restart nginx
+
+- name: Start php-fpm Service
+  service: name=php7.0-fpm state=started enabled=yes

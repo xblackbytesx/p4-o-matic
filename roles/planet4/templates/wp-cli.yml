@@ -1,0 +1,20 @@
+path: public
+
+core config:
+  dbuser: db_user
+  dbpass: db_pass
+  dbname: wordpress
+  dbhost: 127.0.0.1
+  extra-php: |
+        if ( (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) && strpos($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false) {
+            $_SERVER['HTTPS']='on';
+        }
+
+core install:
+  title: Sample Planet 4 website
+  url: https://{{p4_domain}}
+  admin_user: {{p4_username}}
+  admin_email: {{p4_email}}
+
+theme activate:
+- {{p4_active_theme}}
