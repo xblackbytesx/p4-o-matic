@@ -15,7 +15,7 @@
   mysql_user: name={{ nc_db_user }} password={{ nc_db_password }} priv={{ nc_db_name }}.*:ALL host='localhost' state=present
 
 - name: Copy planet4 config file
-  template: src=config.php dest={{p4_install_path}}/wp-cli.yml
+  template: src=wp-cli.yml dest={{p4_install_path}}/wp-cli.yml
 
 - composer:
     command: config
@@ -24,6 +24,11 @@
 
 - composer:
     command: install
+    working_dir: '{{p4_install_path}}'
+
+- composer:
+    command: run-script
+    arguments: site-install
     working_dir: '{{p4_install_path}}'
 
 - name: Change ownership of planet4 installation
