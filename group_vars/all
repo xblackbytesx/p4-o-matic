@@ -1,0 +1,12 @@
+---
+p4_domain: p4.box
+
+# These are the Planet4 database settings
+nc_db_name: planet4
+nc_db_user: planet4
+nc_db_password: secret
+
+nro: netherlands
+
+# You shouldn't need to change this.
+mysql_port: 3306

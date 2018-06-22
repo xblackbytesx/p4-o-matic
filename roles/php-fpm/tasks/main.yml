@@ -1,0 +1,89 @@
+---
+- name: Install php-fpm and deps
+  apt: name={{ item }} state=present
+  with_items:
+    - php7.0-dev
+    - php7.0-cli
+    - php7.0-fpm
+    - php7.0-zip
+    - php7.0-mbstring
+    - php-redis
+    - php7.0-gd
+    - php7.0-xml
+    - php7.0-intl
+    - php7.0-json
+    - php7.0-mcrypt
+    - php7.0-sqlite3
+    - php7.0-mysql
+    - php7.0-curl
+    - php7.0-tidy
+    - php7.0-bcmath
+    - composer
+
+# - name: Disable default pool
+#   command: mv /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.disabled creates=/etc/php-fpm.d/www.disabled
+#   notify: restart php-fpm
+#
+# - name: Copy php-fpm configuration
+#   template: src=planet4.conf dest=/etc/php-fpm.d/
+#   notify: restart php-fpm
+
+
+- ini_file:
+    path: /etc/php/7.0/fpm/php.ini
+    section: opcache
+    option: opcache.enable
+    value: 1
+
+- ini_file:
+    path: /etc/php/7.0/fpm/php.ini
+    section: opcache
+    option: opcache.enable_cli
+    value: 1
+
+- ini_file:
+    path: /etc/php/7.0/fpm/php.ini
+    section: opcache
+    option: opcache.interned_strings_buffer
+    value: 8
+
+- ini_file:
+    path: /etc/php/7.0/fpm/php.ini
+    section: opcache
+    option: opcache.max_accelerated_files
+    value: 10000
+
+- ini_file:
+    path: /etc/php/7.0/fpm/php.ini
+    section: opcache
+    option: opcache.memory_consumption
+    value: 128
+
+- ini_file:
+    path: /etc/php/7.0/fpm/php.ini
+    section: opcache
+    option: opcache.save_comments
+    value: 1
+
+- ini_file:
+    path: /etc/php/7.0/fpm/php.ini
+    section: opcache
+    option: opcache.revalidate_freq
+    value: 1
+
+- name: Link fpm and cli ini configs
+  file: path=/etc/php/7.0/cli/php.ini
+        src=/etc/php/7.0/fpm/php.ini
+        state=link
+        force=yes
+  notify: restart php-fpm
+
+- name: Ensure PHP environment variables are available
+  lineinfile:
+    dest: /etc/php/7.0/fpm/pool.d/www.conf
+    regexp: ;env[PATH] = /usr/local/bin:/usr/bin:/bin
+    line: env[PATH] = /usr/local/bin:/usr/bin:/bin
+  notify: restart php-fpm
+
+- name: Copy phpinfo
+  template: src=phpinfo.php dest=/var/www/

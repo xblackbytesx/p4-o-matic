@@ -1,0 +1,64 @@
+---
+- name: Enable apt-get HTTPS fetch.
+  apt: name={{ item }} state=present
+  with_items:
+   - apt-transport-https
+   - screen
+   - ufw
+
+- name: Install Python tools
+  apt: name={{ item }} state=present
+  with_items:
+   - python-dev
+   - python-pip
+
+- name: Install some basic packages
+  apt: name={{ item }} state=present
+  with_items:
+   - vim
+   - git
+
+- ufw:
+    state: enabled
+    rule: allow
+    port: 22
+
+- name: Create directory to hold SSL certificates
+  file:
+    path: /etc/ssl/private/{{ p4_domain }}
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: 0775
+    recurse: yes
+
+- name: create self-signed SSL certificate
+  command: openssl req -new -nodes -x509 -subj "/C=US/ST=Oregon/L=Portland/O=IT/CN={{ p4_domain }}" -days 3650 -keyout /etc/ssl/private/{{ p4_domain }}/server.key -out /etc/ssl/private/{{ p4_domain }}/server.crt -extensions v3_ca creates=/etc/ssl/private/{{ p4_domain }}/server.crt
+
+- name: Reload ansible_facts
+  setup:
+
+# - local_action: copy content="test" dest=~/.p4/credentials
+
+- name: Check if ZSH is present.
+  apt: name={{ item }} state=present
+  with_items:
+   - zsh
+
+- name: Clone Antigen from Github
+  git: repo=https://github.com/zsh-users/antigen.git dest=~/zsh-config
+
+- name: Clone NVM from Github
+  git: repo=https://github.com/creationix/nvm.git dest=~/.nvm
+
+- name: setup nginx symlinks
+  file: path=~/zsh-config/.zshrc
+        src=~/.zshrc
+        state=link
+        force=yes
+
+- name: setup nginx symlinks
+  file: path=~/zsh-config/.alisses
+        src=~/aliases
+        state=link
+        force=yes

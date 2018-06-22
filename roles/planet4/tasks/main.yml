@@ -1,0 +1,6 @@
+---
+- name: Clone Planet4 from Github
+  git: repo=https://github.com/greenpeace/planet4-base.git dest=/var/www/planet-4-base
+
+- name: Go into the planet-4-base directory
+  chdir: /var/www/planet-4-base
