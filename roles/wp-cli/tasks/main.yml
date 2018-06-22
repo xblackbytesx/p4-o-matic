@@ -1,0 +1,7 @@
+---
+- name: Install the Wordpress CLI
+  get_url: url=https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+           dest=/usr/local/bin/wp
+
+- name: Making wp binary executable
+  file: dest=/usr/local/bin/wp mode=a+x

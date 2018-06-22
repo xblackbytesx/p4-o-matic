@@ -9,5 +9,6 @@
     - mariadb
     - nginx
     - php-fpm
+    - wp-cli
     - planet4
     - webdev-tools
