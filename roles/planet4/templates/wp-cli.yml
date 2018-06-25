@@ -1,9 +1,9 @@
 path: public
 
 core config:
-  dbuser: db_user
-  dbpass: db_pass
-  dbname: wordpress
+  dbuser: {{p4_db_user}}
+  dbpass: {{p4_db_password}}
+  dbname: {{p4_db_name}}
   dbhost: 127.0.0.1
   extra-php: |
         if ( (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) && strpos($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false) {
@@ -17,4 +17,4 @@ core install:
   admin_email: {{p4_email}}
 
 theme activate:
-- {{p4_active_theme}}
+  - {{p4_active_theme}}

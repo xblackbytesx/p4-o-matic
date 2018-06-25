@@ -1,4 +1,9 @@
 ---
+- name: Make sure planet4 path does not yet exist
+  file:
+    state: absent
+    path: '{{p4_install_path}}'
+
 - name: Clone Planet4 from Github
   git: repo=https://github.com/greenpeace/planet4-base.git dest={{p4_install_path}}
 
@@ -9,30 +14,36 @@
   user: name=planet4 group=planet4 home={{p4_install_path}}/
 
 - name: Create planet4 database
-  mysql_db: name={{ nc_db_name }} state=present
+  mysql_db: name={{ p4_db_name }} state=present
 
 - name: Create planet4 database user
-  mysql_user: name={{ nc_db_user }} password={{ nc_db_password }} priv={{ nc_db_name }}.*:ALL host='localhost' state=present
+  mysql_user: name={{ p4_db_user }} password={{ p4_db_password }} priv={{ p4_db_name }}.*:ALL host='localhost' state=present
 
 - name: Copy planet4 config file
   template: src=wp-cli.yml dest={{p4_install_path}}/wp-cli.yml
+
+- name: Change ownership of planet4 installation
+  file: path={{p4_install_path}}/ owner=www-data group=www-data state=directory recurse=yes setype=httpd_sys_content_t
 
 - composer:
     command: config
     arguments: extra.merge-plugin.require "app/{{ composer_nro }}/{{composer_environment}}/composer.json"
     working_dir: '{{p4_install_path}}'
+  become: yes
+  become_user: www-data
 
 - composer:
     command: install
     working_dir: '{{p4_install_path}}'
+  become: yes
+  become_user: www-data
 
 - composer:
     command: run-script
     arguments: site-install
     working_dir: '{{p4_install_path}}'
-
-- name: Change ownership of planet4 installation
-  file: path={{p4_install_path}}/ owner=www-data group=www-data state=directory recurse=yes setype=httpd_sys_content_t
+  become: yes
+  become_user: www-data
 
 - name: Copy planet4 server block (HTTP)
   template: src=nginx.conf dest=/etc/nginx/sites-available/{{ p4_domain }}.conf

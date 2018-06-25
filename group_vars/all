@@ -8,9 +8,9 @@ p4_install_path: /var/www/planet4-base
 p4_domain: p4.box
 
 # These are the Planet4 database settings
-nc_db_name: planet4
-nc_db_user: planet4
-nc_db_password: secret
+p4_db_name: planet4
+p4_db_user: planet4
+p4_db_password: secret
 
 composer_nro: planet4-netherlands
 composer_environment: develop
