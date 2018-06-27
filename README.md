@@ -15,12 +15,13 @@ After cloning this repo go into it's root dir and execute the following:
 ```
 vagrant up
 ```
-Then wait a couple of minutes...
+Then wait a couple of minutes...  
 Aaanndd... PROFIT!
 
 #### Local client host file addition:
 In order to make the routing work a hostfile change is needed.
 If you're smart (and you know you are) you make these changes whilst waiting for the provisioning to finish.
+
 Here is an example `/etc/hosts` file:
 ```
 127.0.0.1 p4.box
