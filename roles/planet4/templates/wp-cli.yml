@@ -12,7 +12,7 @@ core config:
 
 core install:
   title: Sample Planet 4 website
-  url: https://{{p4_domain}}
+  url: https://{{p4_domain}}:4430
   admin_user: {{p4_username}}
   admin_email: {{p4_email}}
 
