@@ -1,9 +1,7 @@
 ---
 - name: Install MariaDB, Nginx, and PHP-FPM
   hosts: all
-  remote_user: peaboy
   become: yes
-  become_method: sudo
 
   roles:
     - common
@@ -11,6 +9,7 @@
     - nginx
     - php-fpm
     - redis
+    - phpmyadmin
     - wp-cli
     - planet4
     - webdev-tools
