@@ -8,7 +8,7 @@
 - name: fix webroot permissions
   file:
     path: /var/www
-    mode: 0755
+    mode: 0777
     state: directory
     owner: www-data
     group: www-data

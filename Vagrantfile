@@ -12,7 +12,7 @@ Vagrant.configure(2) do |config|
   config.vm.network "forwarded_port", guest: 80, host: 8080
   config.vm.network "forwarded_port", guest: 443, host: 4430
 
-  config.vm.synced_folder "~/projects/vagrant/planet4", "/var/www/planet4-base"
+  # config.vm.synced_folder "~/projects/vagrant/planet4", "/var/www/planet4-base"
 
   config.vm.provision "ansible" do |ansible|
     ansible.verbose = "v"

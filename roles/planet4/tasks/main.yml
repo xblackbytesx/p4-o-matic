@@ -1,17 +1,12 @@
 ---
-- name: Make sure planet4 path does not yet exist
-  file:
-    state: absent
-    path: '{{p4_install_path}}'
-
 - name: Clone Planet4 from Github
-  git: repo=https://github.com/greenpeace/planet4-base.git dest={{p4_install_path}}
+  git: repo=https://github.com/greenpeace/planet4-base.git dest={{ p4_install_path }}
 
 - name: Add group "planet4"
   group: name=planet4
 
 - name: Add user "planet4"
-  user: name=planet4 group=planet4 home={{p4_install_path}}/
+  user: name=planet4 group=planet4 home={{ p4_install_path }}/
 
 - name: Create planet4 database
   mysql_db: name={{ p4_db_name }} state=present
@@ -20,30 +15,61 @@
   mysql_user: name={{ p4_db_user }} password={{ p4_db_password }} priv={{ p4_db_name }}.*:ALL host='localhost' state=present
 
 - name: Copy planet4 config file
-  template: src=wp-cli.yml dest={{p4_install_path}}/wp-cli.yml
+  template: src=wp-cli.yml dest={{ p4_install_path }}/wp-cli.yml
+  notify:
+  - fix webroot permissions
 
-- name: Change ownership of planet4 installation
-  file: path={{p4_install_path}}/ owner=www-data group=www-data state=directory recurse=yes setype=httpd_sys_content_t
+- name: fix webroot permissions
+  file:
+    path: /var/www
+    mode: 0755
+    state: directory
+    owner: www-data
+    group: www-data
+    recurse: yes
 
-- composer:
-    command: config
-    arguments: extra.merge-plugin.require "app/{{ composer_nro }}/{{composer_environment}}/composer.json"
-    working_dir: '{{p4_install_path}}'
-  become: yes
-  become_user: www-data
+- name: Composer merge requirement configs
+  command: chdir=/var/www/planet4-base sudo -u www-data composer config extra.merge-plugin.require "app/{{ composer_nro }}/{{composer_environment}}/composer.json"
 
-- composer:
-    command: install
-    working_dir: '{{p4_install_path}}'
-  become: yes
-  become_user: www-data
+- name: Composer install dependencies
+  command: chdir=/var/www/planet4-base sudo -u www-data composer install
 
-- composer:
-    command: run-script
-    arguments: site-install
-    working_dir: '{{p4_install_path}}'
-  become: yes
-  become_user: www-data
+- name: Composer install Planet4 into the public dir
+  command: chdir=/var/www/planet4-base sudo -u www-data composer run-script site-install
+
+- name: Set permissions for the wp-content dirs
+  file:
+    path: /var/www/planet4-base/public/wp-content/uploads
+    mode: 0777
+    state: directory
+    owner: www-data
+    group: www-data
+    recurse: yes
+
+- name: Remove the gpnl child theme
+  file:
+    state: absent
+    path: /var/www/planet4-base/public/wp-content/themes/planet4-child-theme-netherlands
+
+- name: Clone the planet4-child-theme-netherlands from Github
+  git: repo=https://github.com/greenpeace/planet4-child-theme-netherlands.git dest=/var/www/planet4-base/public/wp-content/themes/planet4-child-theme-netherlands
+
+- name: Remove the gpnl-plugin-blocks
+  file:
+    state: absent
+    path: /var/www/planet4-base/public/wp-content/plugins/planet4-gpnl-plugin-blocks
+
+- name: Clone the gpnl-plugin-blocks from Github
+  git: repo=https://github.com/greenpeace/planet4-gpnl-plugin-blocks.git dest=/var/www/planet4-base/public/wp-content/plugins/planet4-gpnl-plugin-blocks
+
+- name: fix webroot permissions
+  file:
+    path: /var/www
+    mode: 0755
+    state: directory
+    owner: www-data
+    group: www-data
+    recurse: yes
 
 - name: Copy planet4 server block (HTTP)
   template: src=nginx.conf dest=/etc/nginx/sites-available/{{ p4_domain }}.conf
